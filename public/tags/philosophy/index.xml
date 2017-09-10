@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Philosophy on Luis Usier</title>
+    <link>/tags/philosophy/</link>
+    <description>Recent content in Philosophy on Luis Usier</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 10 Sep 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/philosophy/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>A mathematical exploration of Pascal’s Wager</title>
+      <link>/pascal/</link>
+      <pubDate>Sun, 10 Sep 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/pascal/</guid>
+      <description>I recently listened to an interesting discussion on the Rationally Speaking podcast (which, by the way, is very good) about Pascal’s Wager.</description>
+    </item>
+    
+  </channel>
+</rss>

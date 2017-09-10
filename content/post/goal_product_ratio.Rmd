@@ -1,0 +1,230 @@
+---
+title: Is parking the bus worth it?
+date: '2017-09-28'
+slug: parking
+categories:
+  - football
+  - statistics
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+premier_league_historical_stats <- 
+  read_excel("premier_league_historical_stats.xlsx") %>% 
+  filter(league == "England") %>% 
+  select(team, season, points, goals_for, goals_against) %>% 
+  arrange(season, desc(points))
+```
+
+There has been an ongoing discussion on Twitter on whether it is better for
+underdogs to play defensively or offensively. 
+
+```{r echo=FALSE}
+blogdown::shortcode('tweet', '912944800730624000')
+```
+
+Now, to me, it is a mathematical certainty that lower-scoring games are more 
+random, and thus better for the underdog. Conversely, higher-scoring games are 
+better for the favorites, who are more assured of winning.
+
+It is a pretty simple point, and it squares with the general perceptions people
+have about the football. Relegation-threatened teams are frequently celebrated
+for "parking the bus", or criticized for not doing it. Most people who watch
+football would intuitively agree with this point.
+
+Most, but not all.
+
+As every other claim made about football, this one also draws its fair share of
+resistance and pushback. Many people are interested in answering this question,
+but not everyone has the necessary mathematical background to do it. Inevitably,
+they end up going down the wrong path.
+
+So I decided to show, using real data, how it is better for relegation 
+contenders to be defensive and for title contenders to be attacking. I hope this 
+empirical exercise will convince people to accept the mathematics behind the 
+question, even if they can't necessarily understand them.
+
+Our dataset contains 15 Premier League seasons, with points and goals.
+
+```{r dataset, echo=FALSE}
+premier_league_historical_stats
+```
+
+The goal is to model total points as a function of the goals scored and 
+conceded. First we have to re-parameterize goals scored/conceded to an 
+unconstrained scale, as we are going to use them in a linear model later. Count
+data such as goals is lower-bounded at zero, but there should be no limit to how
+bad a team's attack is. We then calculate a measure of quality and a measure of 
+attacking/defensive balance.
+
+```{r reparam}
+premier_league_historical_stats <- 
+  premier_league_historical_stats %>% 
+  mutate(
+    
+    # First, see how many goals the team scores relative to the average
+    norm_attack = goals_for %>% divide_by(mean(goals_for)) %>% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    # First, see how many goals the team concedes relative to the average
+    norm_defense = goals_against %>% divide_by(mean(goals_against)) %>% 
+      # Invert it, so a higher defense is better
+      raise_to_power(-1) %>% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    
+    # Now that we have normalized attack and defense ratings, we can compute
+    # measures of quality and attacking balance
+    
+    quality = norm_attack + norm_defense,
+    balance = norm_attack - norm_defense
+  )
+```
+
+We now have two metrics, `quality` and `balance`, that capture how good and
+how attacking a team is, respectively. Incidentally, `quality` is exactly
+the log of the goal ratio, a metric that is familiar to football fans. 
+`balance` is it's lesser-kown sibling, that we can christen as *goal product*
+as it should map directly onto the product of the goals scored and the goals
+conceded.
+
+These are the most attacking teams in the past 15 seasons:
+
+```{r attacking, echo=FALSE}
+premier_league_historical_stats %>% 
+  arrange(desc(balance)) %>% 
+  select(team:goals_against, balance)
+```
+
+And these are the most defensive:
+
+```{r defensive, echo=FALSE}
+premier_league_historical_stats %>% 
+  arrange(balance) %>% 
+  select(team:goals_against, balance)
+```
+
+Now we can fit a simple linear model of points, where the predictors are:
+
++ Quality: the greater the quality, the higher the total points
++ Interaction between quality and balance: according to our "hypothesis", for 
+high-quality teams, an attacking balance should lead to more points. For 
+low-quality teams, the reverse should be true.
+
+```{r model}
+fit <- 
+  premier_league_historical_stats %>% 
+  lm(points ~ quality + quality:balance, data = .)
+
+summary(fit)
+```
+
+I've shown the p-values above, in case you care about them (which you shouldn't,
+but horses for courses, etc).
+
+So we would expect a team of average quality and average balance to get about
+52 points over a season. The team quality obviously has a huge impact on the
+team's point return.
+
+Most importantly, we see that the interaction term `quality:balance` is 
+positive, meaning when both quality and balance are positive (i.e. attacking 
+title contenders) a team will get more points and that when both are negative
+(i.e. defensive relegation battlers) it will also get more points.
+
+This hopefully should prove our hypothesis. However, just to make sure, let's
+look at it from a different angle. Let's fit one model to attacking teams
+and another to defensive teams and see how they differ. We are expecting 
+attacking teams' points totals to display a stronger dependence on the team
+quality. In other words, defensive teams tend towards an average points return,
+whereas attacking teams tend towards an extreme (good or bad) points return.
+
+Results in plot form:
+
+```{r model_plot}
+premier_league_historical_stats %>% 
+  ggplot(aes(quality, points, fill = balance)) +
+  geom_smooth(data = . %>% filter(balance > 0),
+    method = "lm", color = scales::muted("red"), fill = scales::muted("red")
+  ) +
+  geom_smooth(data = . %>% filter(balance < 0),
+    method = "lm", color = scales::muted("blue"), fill = scales::muted("blue")
+  ) +
+  geom_point(pch = 21) +
+  scale_fill_gradient2(
+    low = scales::muted("blue"), 
+    high = scales::muted("red"), 
+    midpoint = 0
+  ) +
+  theme_bw()
+```
+
+As we can see, the red line, fit on the attacking teams, has a bigger slope than 
+the blue line. The red dots are higher than the blue dots at high quality, but
+lower at low quality.
+
+**For good teams, it is better to be offensive, and for bad teams, it is better
+to be defensive**
+
+### Bundesliga
+
+Because I'm absolutely sure it will come up, I've gone through the same process
+for the Bundesliga:
+
+```{r bl_setup, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+bundesliga_historical_stats <- 
+  read_excel("premier_league_historical_stats.xlsx") %>% 
+  filter(league == "Germany") %>% 
+  select(team, season, points, goals_for, goals_against) %>% 
+  arrange(season, desc(points)) %>% 
+  mutate(
+    
+    # First, see how many goals the team scores relative to the average
+    norm_attack = goals_for %>% divide_by(mean(goals_for)) %>% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    # First, see how many goals the team concedes relative to the average
+    norm_defense = goals_against %>% divide_by(mean(goals_against)) %>% 
+      # Invert it, so a higher defense is better
+      raise_to_power(-1) %>% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    
+    # Now that we have normalized attack and defense ratings, we can compute
+    # measures of quality and attacking balance
+    
+    quality = norm_attack + norm_defense,
+    balance = norm_attack - norm_defense
+  )
+```
+
+```{r bundesliga_model}
+fit <- 
+  bundesliga_historical_stats %>% 
+  lm(points ~ quality + quality:balance, data = .)
+
+summary(fit)
+```
+
+```{r bundesliga_plot}
+bundesliga_historical_stats %>% 
+  ggplot(aes(quality, points, fill = balance)) +
+  geom_smooth(data = . %>% filter(balance > 0),
+    method = "lm", color = scales::muted("red"), fill = scales::muted("red")
+  ) +
+  geom_smooth(data = . %>% filter(balance < 0),
+    method = "lm", color = scales::muted("blue"), fill = scales::muted("blue")
+  ) +
+  geom_point(pch = 21) +
+  scale_fill_gradient2(
+    low = scales::muted("blue"), 
+    high = scales::muted("red"), 
+    midpoint = 0
+  ) +
+  theme_bw()
+```
+

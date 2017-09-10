@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Statistics on Luis Usier</title>
+    <link>/categories/statistics/</link>
+    <description>Recent content in Statistics on Luis Usier</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 28 Sep 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/categories/statistics/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Is parking the bus worth it?</title>
+      <link>/parking/</link>
+      <pubDate>Thu, 28 Sep 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/parking/</guid>
+      <description>There has been an ongoing discussion on Twitter on whether it is better for underdogs to play defensively or offensively.
+Werder Bremen is ill advised to focus on defense. In relegation race you need to focus on scoring. The old 4:3-Werder would do better.
+&amp;mdash; Goalimpact (@Goalimpact) September 27, 2017  Now, to me, it is a mathematical certainty that lower-scoring games are more random, and thus better for the underdog.</description>
+    </item>
+    
+  </channel>
+</rss>

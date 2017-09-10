@@ -1,0 +1,182 @@
+---
+title: Is parking the bus worth it?
+date: '2017-09-28'
+slug: parking
+categories:
+  - football
+  - statistics
+---
+
+
+
+<p>There has been an ongoing discussion on Twitter on whether it is better for underdogs to play defensively or offensively.</p>
+{{% tweet 912944800730624000 %}}
+<p>Now, to me, it is a mathematical certainty that lower-scoring games are more random, and thus better for the underdog. Conversely, higher-scoring games are better for the favorites, who are more assured of winning.</p>
+<p>It is a pretty simple point, and it squares with the general perceptions people have about the football. Relegation-threatened teams are frequently celebrated for “parking the bus”, or criticized for not doing it. Most people who watch football would intuitively agree with this point.</p>
+<p>Most, but not all.</p>
+<p>As every other claim made about football, this one also draws its fair share of resistance and pushback. Many people are interested in answering this question, but not everyone has the necessary mathematical background to do it. Inevitably, they end up going down the wrong path.</p>
+<p>So I decided to show, using real data, how it is better for relegation contenders to be defensive and for title contenders to be attacking. I hope this empirical exercise will convince people to accept the mathematics behind the question, even if they can’t necessarily understand them.</p>
+<p>Our dataset contains 15 Premier League seasons, with points and goals.</p>
+<pre><code>## # A tibble: 300 x 5
+##                 team  season points goals_for goals_against
+##                &lt;chr&gt;   &lt;chr&gt;  &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt;
+##  1 Manchester United 2002/03     83        74            34
+##  2           Arsenal 2002/03     78        85            42
+##  3  Newcastle United 2002/03     69        63            48
+##  4           Chelsea 2002/03     67        68            38
+##  5         Liverpool 2002/03     64        61            41
+##  6  Blackburn Rovers 2002/03     60        52            43
+##  7           Everton 2002/03     59        48            49
+##  8       Southampton 2002/03     52        43            46
+##  9   Manchester City 2002/03     51        47            54
+## 10 Tottenham Hotspur 2002/03     50        51            62
+## # ... with 290 more rows</code></pre>
+<p>The goal is to model total points as a function of the goals scored and conceded. First we have to re-parameterize goals scored/conceded to an unconstrained scale, as we are going to use them in a linear model later. Count data such as goals is lower-bounded at zero, but there should be no limit to how bad a team’s attack is. We then calculate a measure of quality and a measure of attacking/defensive balance.</p>
+<pre class="r"><code>premier_league_historical_stats &lt;- 
+  premier_league_historical_stats %&gt;% 
+  mutate(
+    
+    # First, see how many goals the team scores relative to the average
+    norm_attack = goals_for %&gt;% divide_by(mean(goals_for)) %&gt;% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    # First, see how many goals the team concedes relative to the average
+    norm_defense = goals_against %&gt;% divide_by(mean(goals_against)) %&gt;% 
+      # Invert it, so a higher defense is better
+      raise_to_power(-1) %&gt;% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    
+    # Now that we have normalized attack and defense ratings, we can compute
+    # measures of quality and attacking balance
+    
+    quality = norm_attack + norm_defense,
+    balance = norm_attack - norm_defense
+  )</code></pre>
+<p>We now have two metrics, <code>quality</code> and <code>balance</code>, that capture how good and how attacking a team is, respectively. Incidentally, <code>quality</code> is exactly the log of the goal ratio, a metric that is familiar to football fans. <code>balance</code> is it’s lesser-kown sibling, that we can christen as <em>goal product</em> as it should map directly onto the product of the goals scored and the goals conceded.</p>
+<p>These are the most attacking teams in the past 15 seasons:</p>
+<pre><code>## # A tibble: 300 x 6
+##                    team  season points goals_for goals_against   balance
+##                   &lt;chr&gt;   &lt;chr&gt;  &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt;     &lt;dbl&gt;
+##  1            Liverpool 2013/14     84       101            50 0.6808220
+##  2            Blackpool 2010/11     39        55            78 0.5177205
+##  3    Tottenham Hotspur 2007/08     46        66            61 0.4542071
+##  4 West Bromwich Albion 2010/11     47        56            71 0.4417101
+##  5      Manchester City 2013/14     86       102            37 0.3895692
+##  6     Blackburn Rovers 2011/12     31        48            78 0.3815883
+##  7    Manchester United 2012/13     89        86            43 0.3692259
+##  8      AFC Bournemouth 2016/17     46        55            67 0.3657043
+##  9              Arsenal 2011/12     70        74            49 0.3495639
+## 10          Aston Villa 2007/08     60        71            51 0.3481840
+## # ... with 290 more rows</code></pre>
+<p>And these are the most defensive:</p>
+<pre><code>## # A tibble: 300 x 6
+##                 team  season points goals_for goals_against    balance
+##                &lt;chr&gt;   &lt;chr&gt;  &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt;      &lt;dbl&gt;
+##  1           Chelsea 2004/05     95        72            15 -0.8616052
+##  2   Manchester City 2006/07     42        29            44 -0.6948360
+##  3            Fulham 2008/09     53        39            34 -0.6563993
+##  4        Sunderland 2002/03     19        21            65 -0.6274118
+##  5  Blackburn Rovers 2004/05     42        32            43 -0.6193855
+##  6   Birmingham City 2005/06     34        28            50 -0.6020940
+##  7         Liverpool 2005/06     82        57            25 -0.5843944
+##  8     Middlesbrough 2016/17     28        27            53 -0.5801927
+##  9           Burnley 2014/15     33        28            53 -0.5438251
+## 10 Manchester United 2004/05     77        58            26 -0.5277820
+## # ... with 290 more rows</code></pre>
+<p>Now we can fit a simple linear model of points, where the predictors are:</p>
+<ul>
+<li>Quality: the greater the quality, the higher the total points</li>
+<li>Interaction between quality and balance: according to our “hypothesis”, for high-quality teams, an attacking balance should lead to more points. For low-quality teams, the reverse should be true.</li>
+</ul>
+<pre class="r"><code>fit &lt;- 
+  premier_league_historical_stats %&gt;% 
+  lm(points ~ quality + quality:balance, data = .)
+
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = points ~ quality + quality:balance, data = .)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -11.9838  -3.0554  -0.2553   2.8365  14.2059 
+## 
+## Coefficients:
+##                 Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)      52.2606     0.2510  208.19  &lt; 2e-16 ***
+## quality          32.9394     0.5473   60.18  &lt; 2e-16 ***
+## quality:balance   6.6145     1.6618    3.98 8.66e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 4.347 on 297 degrees of freedom
+## Multiple R-squared:  0.9343, Adjusted R-squared:  0.9338 
+## F-statistic:  2110 on 2 and 297 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>I’ve shown the p-values above, in case you care about them (which you shouldn’t, but horses for courses, etc).</p>
+<p>So we would expect a team of average quality and average balance to get about 52 points over a season. The team quality obviously has a huge impact on the team’s point return.</p>
+<p>Most importantly, we see that the interaction term <code>quality:balance</code> is positive, meaning when both quality and balance are positive (i.e. attacking title contenders) a team will get more points and that when both are negative (i.e. defensive relegation battlers) it will also get more points.</p>
+<p>This hopefully should prove our hypothesis. However, just to make sure, let’s look at it from a different angle. Let’s fit one model to attacking teams and another to defensive teams and see how they differ. We are expecting attacking teams’ points totals to display a stronger dependence on the team quality. In other words, defensive teams tend towards an average points return, whereas attacking teams tend towards an extreme (good or bad) points return.</p>
+<p>Results in plot form:</p>
+<pre class="r"><code>premier_league_historical_stats %&gt;% 
+  ggplot(aes(quality, points, fill = balance)) +
+  geom_smooth(data = . %&gt;% filter(balance &gt; 0),
+    method = &quot;lm&quot;, color = scales::muted(&quot;red&quot;), fill = scales::muted(&quot;red&quot;)
+  ) +
+  geom_smooth(data = . %&gt;% filter(balance &lt; 0),
+    method = &quot;lm&quot;, color = scales::muted(&quot;blue&quot;), fill = scales::muted(&quot;blue&quot;)
+  ) +
+  geom_point(pch = 21) +
+  scale_fill_gradient2(
+    low = scales::muted(&quot;blue&quot;), 
+    high = scales::muted(&quot;red&quot;), 
+    midpoint = 0
+  ) +
+  theme_bw()</code></pre>
+<p><img src="/post/goal_product_ratio_files/figure-html/model_plot-1.png" width="672" /></p>
+<p>As we can see, the red line, fit on the attacking teams, has a bigger slope than the blue line. The red dots are higher than the blue dots at high quality, but lower at low quality.</p>
+<p><strong>For good teams, it is better to be offensive, and for bad teams, it is better to be defensive</strong></p>
+<div id="bundesliga" class="section level3">
+<h3>Bundesliga</h3>
+<p>Because I’m absolutely sure it will come up, I’ve gone through the same process for the Bundesliga:</p>
+<pre class="r"><code>fit &lt;- 
+  bundesliga_historical_stats %&gt;% 
+  lm(points ~ quality + quality:balance, data = .)
+
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = points ~ quality + quality:balance, data = .)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -9.8838 -2.4037 -0.2118  2.5132 12.8669 
+## 
+## Coefficients:
+##                 Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)      46.9071     0.2437 192.442  &lt; 2e-16 ***
+## quality          29.6913     0.6199  47.898  &lt; 2e-16 ***
+## quality:balance   8.7918     1.8896   4.653 5.16e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 4.005 on 267 degrees of freedom
+## Multiple R-squared:  0.9161, Adjusted R-squared:  0.9155 
+## F-statistic:  1457 on 2 and 267 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>bundesliga_historical_stats %&gt;% 
+  ggplot(aes(quality, points, fill = balance)) +
+  geom_smooth(data = . %&gt;% filter(balance &gt; 0),
+    method = &quot;lm&quot;, color = scales::muted(&quot;red&quot;), fill = scales::muted(&quot;red&quot;)
+  ) +
+  geom_smooth(data = . %&gt;% filter(balance &lt; 0),
+    method = &quot;lm&quot;, color = scales::muted(&quot;blue&quot;), fill = scales::muted(&quot;blue&quot;)
+  ) +
+  geom_point(pch = 21) +
+  scale_fill_gradient2(
+    low = scales::muted(&quot;blue&quot;), 
+    high = scales::muted(&quot;red&quot;), 
+    midpoint = 0
+  ) +
+  theme_bw()</code></pre>
+<p><img src="/post/goal_product_ratio_files/figure-html/bundesliga_plot-1.png" width="672" /></p>
+</div>
