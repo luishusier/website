@@ -30,9 +30,11 @@ random, and thus better for the underdog. Conversely, higher-scoring games are
 better for the favorites, who are more assured of winning.
 
 It is a pretty simple point, and it squares with the general perceptions people
-have about the football. Relegation-threatened teams are frequently celebrated
-for "parking the bus", or criticized for not doing it. Most people who watch
-football would intuitively agree with this point.
+have about the football. Big teams play more defensive setups when playing
+against other big teams. Games against defensive-minded minnows like Burnley are 
+feared more than those against attack-minded sides like Bournemouth. Most people 
+who watch football intuitively feel like a team has got to defend when playing
+against a better team.
 
 Most, but not all.
 
