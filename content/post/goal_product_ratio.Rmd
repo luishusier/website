@@ -28,7 +28,6 @@ blogdown::shortcode('tweet', '912944800730624000')
 Now, to me, it is a mathematical certainty that lower-scoring games are more 
 random, and thus better for the underdog. Conversely, higher-scoring games are 
 better for the favorites, who are more assured of winning.
-
 It is a pretty simple point, and it squares with the general perceptions people
 have about the football. Relegation-threatened teams are frequently celebrated
 for "parking the bus", or criticized for not doing it. Most people who watch
