@@ -28,6 +28,7 @@ blogdown::shortcode('tweet', '912944800730624000')
 Now, to me, it is a mathematical certainty that lower-scoring games are more 
 random, and thus better for the underdog. Conversely, higher-scoring games are 
 better for the favorites, who are more assured of winning.
+
 It is a pretty simple point, and it squares with the general perceptions people
 have about the football. Relegation-threatened teams are frequently celebrated
 for "parking the bus", or criticized for not doing it. Most people who watch
@@ -42,8 +43,9 @@ they end up going down the wrong path.
 
 So I decided to show, using real data, how it is better for relegation 
 contenders to be defensive and for title contenders to be attacking. I hope this 
-empirical exercise will convince people to accept the mathematics behind the 
-question, even if they can't necessarily understand them.
+empirical exercise will convince people that there really is an underlying 
+mathematical feature we are dealing with here, even if they can't fully 
+understand the mathematics that go into it.
 
 Our dataset contains 15 Premier League seasons, with points and goals.
 
@@ -156,12 +158,12 @@ premier_league_historical_stats %>%
     high = scales::muted("red"), 
     midpoint = 0
   ) +
-  theme_bw()
+  theme_classic()
 ```
 
-As we can see, the red line, fit on the attacking teams, has a bigger slope than 
-the blue line. The red dots are higher than the blue dots at high quality, but
-lower at low quality.
+As we can see, the red line, fit on the attacking teams, has a greater slope 
+than the blue line. The red dots are higher than the blue dots at high quality, 
+but lower at low quality.
 
 **For good teams, it is better to be offensive, and for bad teams, it is better
 to be defensive**
@@ -201,7 +203,7 @@ bundesliga_historical_stats <-
   )
 ```
 
-```{r bundesliga_model}
+```{r bundesliga_model, echo=FALSE}
 fit <- 
   bundesliga_historical_stats %>% 
   lm(points ~ quality + quality:balance, data = .)
@@ -209,7 +211,7 @@ fit <-
 summary(fit)
 ```
 
-```{r bundesliga_plot}
+```{r bundesliga_plot, echo=FALSE}
 bundesliga_historical_stats %>% 
   ggplot(aes(quality, points, fill = balance)) +
   geom_smooth(data = . %>% filter(balance > 0),
@@ -224,6 +226,150 @@ bundesliga_historical_stats %>%
     high = scales::muted("red"), 
     midpoint = 0
   ) +
-  theme_bw()
+  theme_classic()
 ```
 
+### La Liga
+
+I've also done La Liga for good measure:
+
+```{r ll_setup, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+la_liga_historical_stats <- 
+  read_excel("premier_league_historical_stats.xlsx") %>% 
+  filter(league == "Spain") %>% 
+  select(team, season, points, goals_for, goals_against) %>% 
+  arrange(season, desc(points)) %>% 
+  mutate(
+    
+    # First, see how many goals the team scores relative to the average
+    norm_attack = goals_for %>% divide_by(mean(goals_for)) %>% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    # First, see how many goals the team concedes relative to the average
+    norm_defense = goals_against %>% divide_by(mean(goals_against)) %>% 
+      # Invert it, so a higher defense is better
+      raise_to_power(-1) %>% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    
+    # Now that we have normalized attack and defense ratings, we can compute
+    # measures of quality and attacking balance
+    
+    quality = norm_attack + norm_defense,
+    balance = norm_attack - norm_defense
+  )
+```
+
+```{r la_liga_model, echo=FALSE}
+fit <- 
+  la_liga_historical_stats %>% 
+  lm(points ~ quality + quality:balance, data = .)
+
+summary(fit)
+```
+
+```{r la_liga_plot, echo=FALSE}
+la_liga_historical_stats %>% 
+  ggplot(aes(quality, points, fill = balance)) +
+  geom_smooth(data = . %>% filter(balance > 0),
+    method = "lm", color = scales::muted("red"), fill = scales::muted("red")
+  ) +
+  geom_smooth(data = . %>% filter(balance < 0),
+    method = "lm", color = scales::muted("blue"), fill = scales::muted("blue")
+  ) +
+  geom_point(pch = 21) +
+  scale_fill_gradient2(
+    low = scales::muted("blue"), 
+    high = scales::muted("red"), 
+    midpoint = 0
+  ) +
+  theme_classic()
+```
+
+Here the two fits don't completely separate at the lower end of the scale.
+Simpson's paradox and all that. Remember that what we trust the linear fit 
+above better. Fitting one model for attacking teams and another for defensive
+teams is a very clumsy way to answer the question, but I thought it would at
+least be easy for people to understand.
+
+The model coefficients are nearly identical to the Premier League ones. I 
+truly, honestly hope there are no "It's different for La Liga" takes, funny
+though it would be.
+
+### All together
+
+Putting all three leagues together (normalizing Bundesliga points):
+
+```{r all_setup, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+historical_stats <- 
+  read_excel("premier_league_historical_stats.xlsx") %>% 
+  mutate(points = if_else(league == "Germany", points * 38/34, points)) %>% 
+  select(team, season, points, goals_for, goals_against) %>% 
+  arrange(season, desc(points)) %>% 
+  mutate(
+    # First, see how many goals the team scores relative to the average
+    norm_attack = goals_for %>% divide_by(mean(goals_for)) %>% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    # First, see how many goals the team concedes relative to the average
+    norm_defense = goals_against %>% divide_by(mean(goals_against)) %>% 
+      # Invert it, so a higher defense is better
+      raise_to_power(-1) %>% 
+      # Then, transform it into an unconstrained scale
+      log(),
+    
+    # Now that we have normalized attack and defense ratings, we can compute
+    # measures of quality and attacking balance
+    
+    quality = norm_attack + norm_defense,
+    balance = norm_attack - norm_defense
+  )
+```
+
+```{r all_model, echo=FALSE}
+fit <- 
+  la_liga_historical_stats %>% 
+  lm(points ~ quality + quality:balance, data = .)
+
+summary(fit)
+```
+
+```{r all_plot, echo=FALSE}
+historical_stats %>% 
+  ggplot(aes(quality, points, fill = balance)) +
+  geom_point(pch = 21, alpha = 0.5) +
+  geom_smooth(data = . %>% filter(balance > 0),
+    method = "lm", color = scales::muted("red"), fill = scales::muted("red")
+  ) +
+  geom_smooth(data = . %>% filter(balance < 0),
+    method = "lm", color = scales::muted("blue"), fill = scales::muted("blue")
+  ) +
+  scale_fill_gradient2(
+    low = scales::muted("blue"), 
+    high = scales::muted("red"), 
+    midpoint = 0
+  ) +
+  theme_classic()
+```
+
+### Conclusion
+
+This was interesting, but it should not be necessary. Whether to be offensive or
+defensive is one of the most basic mathematical questions one can ask about
+football; it is "Mathematics in Football 101". It is dispiriting that
+this should be a matter of confusion. If football analysts can't even answer 
+this simple question, how could they possibly tackle more complex questions?
+
+Football has little data. Goals are infrequent, and games in different 
+competitions are not immediately comparable. When the data is sparse, it is
+imperative to use proper mathematical and statistical methodology. Rules of 
+thumb won't do it, and disregard for the nature of the measurements (i.e.
+multiplicative count data vs. linearized ratios) is disastrous. Humans have
+spent thousands of years developing mathematics - the least we can do is
+learn it and use it.
