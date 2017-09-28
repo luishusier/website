@@ -1,7 +1,7 @@
 ---
 title: Is parking the bus worth it?
 date: '2017-09-28'
-slug: parking
+slug: balance
 categories:
   - football
   - statistics
@@ -27,7 +27,8 @@ blogdown::shortcode('tweet', '912944800730624000')
 
 Now, to me, it is a mathematical certainty that lower-scoring games are more 
 random, and thus better for the underdog. Conversely, higher-scoring games are 
-better for the favorites, who are more assured of winning.
+better for the favorites, who are more assured of winning as more goals lead
+to less random outcomes.
 
 It is a pretty simple point, and it squares with the general perceptions people
 have about the football. Big teams play more defensive setups when playing
@@ -39,13 +40,14 @@ against a better team.
 Most, but not all.
 
 As every other claim made about football, this one also draws its fair share of
-resistance and pushback. Many people are interested in answering this question,
-but not everyone has the necessary mathematical background to do it. Inevitably,
-they end up going down the wrong path.
+resistance and pushback. People don't always believe it, and they try to back
+their case up with data. Frequently, a lack of mathematical and statistical
+knowledge leads to mishandling of data, especially in football where we are
+dealing with small amounts of count data.
 
 So I decided to show, using real data, how it is better for relegation 
 contenders to be defensive and for title contenders to be attacking. I hope this 
-empirical exercise will convince people that there really is an underlying 
+empirical exercise will convince people that it really is an underlying 
 mathematical feature we are dealing with here, even if they can't fully 
 understand the mathematics that go into it.
 
@@ -372,6 +374,6 @@ Football has little data. Goals are infrequent, and games in different
 competitions are not immediately comparable. When the data is sparse, it is
 imperative to use proper mathematical and statistical methodology. Rules of 
 thumb won't do it, and disregard for the nature of the measurements (i.e.
-multiplicative count data vs. linearized ratios) is disastrous. Humans have
-spent thousands of years developing mathematics - the least we can do is
-learn it and use it.
+multiplicative count data vs. linearized dimensionless quantities) is 
+disastrous. Humans have spent thousands of years developing mathematics - the 
+least we can do is learn it and use it.
