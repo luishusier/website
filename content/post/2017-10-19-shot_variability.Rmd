@@ -17,7 +17,7 @@ generates very few shots, but with a much higher scoring percentage.
 His simulations are mathematically correct, but his conclusion is wrong. That's
 because the simulations are answering the wrong question. They are answering the
 question of whether it is to a team's advantage to spread their expected goals
-among many shots *conditionally on a fixed number of shots being taken*. But in
+among many shots **conditionally on a fixed number of shots being taken**. But in
 order to answer the unconditional question, we also need to simulate the 
 variability in the number of shots per match. This seems minor, but it actually 
 turns out to be pretty important, as we will see.
@@ -36,9 +36,9 @@ simulations <-
   # 100,000 simulations
   tibble(
     # Team low variance takes 2 shots every game, 60% probability
-    team_low_var = rbinom(1e6, 2, .6),
+    team_low_var = rbinom(1e7, 2, .6),
     # Team high variance takes 20 shots every game, 6% probability
-    team_high_var = rbinom(1e6, 20, .06),
+    team_high_var = rbinom(1e7, 20, .06),
     result = case_when(
       team_low_var > team_high_var ~ "Low Variance wins",
       team_low_var < team_high_var ~ "High Variance wins",
@@ -51,7 +51,7 @@ simulations <-
 
 ```{r, echo=FALSE}
 simulations %>% 
-  knitr::kable(digits = 2)
+  knitr::kable(digits = 3)
 ```
 
 His simulations were, as you can see, spot on. What we need to do now in order
@@ -64,13 +64,13 @@ varies, and it is important:
 complete_simulations <- 
   tibble(
     # Team low variance averages 2 shots a game, but there's variation
-    team_low_shots = rpois(1e6, 2),
+    team_low_shots = rpois(1e7, 2),
     # Team high variance averages 20 shots a game, but there's variation
-    team_high_shots = rpois(1e6, 20),
+    team_high_shots = rpois(1e7, 20),
     # The shots are scored with the same probability as before
     # but there's a different number of shots in every match
-    team_low_var = rbinom(1e6, team_low_shots, .6),
-    team_high_var = rbinom(1e6, team_high_shots, .06),
+    team_low_var = rbinom(1e7, team_low_shots, .6),
+    team_high_var = rbinom(1e7, team_high_shots, .06),
     result = case_when(
       team_low_var > team_high_var ~ "Low Variance wins",
       team_low_var < team_high_var ~ "High Variance wins",
@@ -83,7 +83,7 @@ complete_simulations <-
 
 ```{r, echo=FALSE}
 complete_simulations %>% 
-  knitr::kable(digits = 2)
+  knitr::kable(digits = 3)
 ```
 
 They both now have the same probability of winning! That happens, of course,

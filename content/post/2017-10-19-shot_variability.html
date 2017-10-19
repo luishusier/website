@@ -11,15 +11,15 @@ categories:
 
 <p>Who would win in a fight: one horse-sized duck or a hundred duck-sized horses?</p>
 <p>Mark Taylor says <a href="https://www.pinnacle.com/en/betting-articles/Soccer/expected-goals-and-big-chances/QFU2JE3AQPK8VQV7?ito=twitter&amp;dvc=d&amp;aup=True">the former</a>. Ok, that’s not quite what he says. Rather, he says that if two teams generate the same total expected goals, the team that generates loads of little shots does better than the team that generates very few shots, but with a much higher scoring percentage.</p>
-<p>His simulations are mathematically correct, but his conclusion is wrong. That’s because the simulations are answering the wrong question. They are answering the question of whether it is to a team’s advantage to spread their expected goals among many shots <em>conditionally on a fixed number of shots being taken</em>. But in order to answer the unconditional question, we also need to simulate the variability in the number of shots per match. This seems minor, but it actually turns out to be pretty important, as we will see.</p>
+<p>His simulations are mathematically correct, but his conclusion is wrong. That’s because the simulations are answering the wrong question. They are answering the question of whether it is to a team’s advantage to spread their expected goals among many shots <strong>conditionally on a fixed number of shots being taken</strong>. But in order to answer the unconditional question, we also need to simulate the variability in the number of shots per match. This seems minor, but it actually turns out to be pretty important, as we will see.</p>
 <p>First, let’s go over Mark’s simulations. In his example, one team generates two shots with a 60% probability of being scored, and the other generates 20 shots with a 6% probability of being scored. This is easy to simulate.</p>
 <pre class="r"><code>simulations &lt;- 
   # 100,000 simulations
   tibble(
     # Team low variance takes 2 shots every game, 60% probability
-    team_low_var = rbinom(1e6, 2, .6),
+    team_low_var = rbinom(1e7, 2, .6),
     # Team high variance takes 20 shots every game, 6% probability
-    team_high_var = rbinom(1e6, 20, .06),
+    team_high_var = rbinom(1e7, 20, .06),
     result = case_when(
       team_low_var &gt; team_high_var ~ &quot;Low Variance wins&quot;,
       team_low_var &lt; team_high_var ~ &quot;High Variance wins&quot;,
@@ -38,15 +38,15 @@ categories:
 <tbody>
 <tr class="odd">
 <td align="left">Draw</td>
-<td align="right">0.30</td>
+<td align="right">0.305</td>
 </tr>
 <tr class="even">
 <td align="left">High Variance wins</td>
-<td align="right">0.32</td>
+<td align="right">0.318</td>
 </tr>
 <tr class="odd">
 <td align="left">Low Variance wins</td>
-<td align="right">0.38</td>
+<td align="right">0.377</td>
 </tr>
 </tbody>
 </table>
@@ -54,13 +54,13 @@ categories:
 <pre class="r"><code>complete_simulations &lt;- 
   tibble(
     # Team low variance averages 2 shots a game, but there&#39;s variation
-    team_low_shots = rpois(1e6, 2),
+    team_low_shots = rpois(1e7, 2),
     # Team high variance averages 20 shots a game, but there&#39;s variation
-    team_high_shots = rpois(1e6, 20),
+    team_high_shots = rpois(1e7, 20),
     # The shots are scored with the same probability as before
     # but there&#39;s a different number of shots in every match
-    team_low_var = rbinom(1e6, team_low_shots, .6),
-    team_high_var = rbinom(1e6, team_high_shots, .06),
+    team_low_var = rbinom(1e7, team_low_shots, .6),
+    team_high_var = rbinom(1e7, team_high_shots, .06),
     result = case_when(
       team_low_var &gt; team_high_var ~ &quot;Low Variance wins&quot;,
       team_low_var &lt; team_high_var ~ &quot;High Variance wins&quot;,
@@ -79,15 +79,15 @@ categories:
 <tbody>
 <tr class="odd">
 <td align="left">Draw</td>
-<td align="right">0.28</td>
+<td align="right">0.277</td>
 </tr>
 <tr class="even">
 <td align="left">High Variance wins</td>
-<td align="right">0.36</td>
+<td align="right">0.362</td>
 </tr>
 <tr class="odd">
 <td align="left">Low Variance wins</td>
-<td align="right">0.36</td>
+<td align="right">0.362</td>
 </tr>
 </tbody>
 </table>
