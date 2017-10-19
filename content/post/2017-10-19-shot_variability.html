@@ -1,0 +1,95 @@
+---
+title: Many bad shots or one good shot?
+date: '2017-10-19'
+slug: shot_variability
+categories:
+  - football
+  - statistics
+---
+
+
+
+<p>Who would win in a fight: one horse-sized duck or a hundred duck-sized horses?</p>
+<p>Mark Taylor says <a href="https://www.pinnacle.com/en/betting-articles/Soccer/expected-goals-and-big-chances/QFU2JE3AQPK8VQV7?ito=twitter&amp;dvc=d&amp;aup=True">the former</a>. Ok, that’s not quite what he says. Rather, he says that if two teams generate the same total expected goals, the team that generates loads of little shots does better than the team that generates very few shots, but with a much higher scoring percentage.</p>
+<p>His simulations are mathematically correct, but his conclusion is wrong. That’s because the simulations are answering the wrong question. They are answering the question of whether it is to a team’s advantage to spread their expected goals among many shots <em>conditionally on a fixed number of shots being taken</em>. But in order to answer the unconditional question, we also need to simulate the variability in the number of shots per match. This seems minor, but it actually turns out to be pretty important, as we will see.</p>
+<p>First, let’s go over Mark’s simulations. In his example, one team generates two shots with a 60% probability of being scored, and the other generates 20 shots with a 6% probability of being scored. This is easy to simulate.</p>
+<pre class="r"><code>simulations &lt;- 
+  # 100,000 simulations
+  tibble(
+    # Team low variance takes 2 shots every game, 60% probability
+    team_low_var = rbinom(1e6, 2, .6),
+    # Team high variance takes 20 shots every game, 6% probability
+    team_high_var = rbinom(1e6, 20, .06),
+    result = case_when(
+      team_low_var &gt; team_high_var ~ &quot;Low Variance wins&quot;,
+      team_low_var &lt; team_high_var ~ &quot;High Variance wins&quot;,
+      team_low_var == team_high_var ~ &quot;Draw&quot;
+    )
+  ) %&gt;% 
+  count(result) %&gt;% 
+  mutate(n = n / sum(n))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">result</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Draw</td>
+<td align="right">0.30</td>
+</tr>
+<tr class="even">
+<td align="left">High Variance wins</td>
+<td align="right">0.32</td>
+</tr>
+<tr class="odd">
+<td align="left">Low Variance wins</td>
+<td align="right">0.38</td>
+</tr>
+</tbody>
+</table>
+<p>His simulations were, as you can see, spot on. What we need to do now in order to make the simulations complete and relevant to real-world situations is simulate that there’s <em>a different number of shots in every game</em>. Two shots a game teams would sometimes be expected to take four shots, sometimes none. It varies, and it is important:</p>
+<pre class="r"><code>complete_simulations &lt;- 
+  tibble(
+    # Team low variance averages 2 shots a game, but there&#39;s variation
+    team_low_shots = rpois(1e6, 2),
+    # Team high variance averages 20 shots a game, but there&#39;s variation
+    team_high_shots = rpois(1e6, 20),
+    # The shots are scored with the same probability as before
+    # but there&#39;s a different number of shots in every match
+    team_low_var = rbinom(1e6, team_low_shots, .6),
+    team_high_var = rbinom(1e6, team_high_shots, .06),
+    result = case_when(
+      team_low_var &gt; team_high_var ~ &quot;Low Variance wins&quot;,
+      team_low_var &lt; team_high_var ~ &quot;High Variance wins&quot;,
+      team_low_var == team_high_var ~ &quot;Draw&quot;
+    )
+  ) %&gt;% 
+  count(result) %&gt;% 
+  mutate(n = n / sum(n))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">result</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Draw</td>
+<td align="right">0.28</td>
+</tr>
+<tr class="even">
+<td align="left">High Variance wins</td>
+<td align="right">0.36</td>
+</tr>
+<tr class="odd">
+<td align="left">Low Variance wins</td>
+<td align="right">0.36</td>
+</tr>
+</tbody>
+</table>
+<p>They both now have the same probability of winning! That happens, of course, because football operates roughly as a <a href="https://en.wikipedia.org/wiki/Poisson_point_process">Poisson process</a>. Hopefully I will write more on that soon.</p>
+<p>It’s good that Mark and other people are investigating these fundamental questions. It’s just a shame that the expected goals paradigm got so entrenched that people neglect to model that there’s also variability in the number of shots taken by teams. Expected goals, as it is usually done, operates <em>conditionally on the exact same shots being taken</em>. But there’s a lot of variation in how many, and what kinds of shots are taken! Analyses of football matches can’t just assume the shots as given, they need to encompass everything.</p>
