@@ -91,7 +91,7 @@ premier_league_historical_stats <-
 We now have two metrics, `quality` and `balance`, that capture how good and
 how attacking a team is, respectively. Incidentally, `quality` is exactly
 the log of the goal ratio, a metric that is familiar to football fans. 
-`balance` is it's lesser-kown sibling, that we can christen as *goal product*
+`balance` is its lesser-kown sibling, that we can christen as *goal product*
 as it should map directly onto the product of the goals scored and the goals
 conceded.
 
