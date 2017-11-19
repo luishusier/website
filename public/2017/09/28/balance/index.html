@@ -97,7 +97,8 @@ Werder Bremen is ill advised to focus on defense. In relegation race you need to
     <section id="post-body">
         <p>There has been an ongoing discussion on Twitter on whether it is better for underdogs to play defensively or offensively.</p>
 <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Werder Bremen is ill advised to focus on defense. In relegation race you need to focus on scoring. The old 4:3-Werder would do better.</p>&mdash; Goalimpact (@Goalimpact) <a href="https://twitter.com/Goalimpact/status/912944800730624000?ref_src=twsrc%5Etfw">September 27, 2017</a></blockquote>
-<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 <p>Now, to me, it is a mathematical certainty that lower-scoring games are more random, and thus better for the underdog. Conversely, higher-scoring games are better for the favorites, who are more assured of winning as more goals lead to less random outcomes.</p>
 <p>It is a pretty simple point, and it squares with the general perceptions people have about the football. Big teams play more defensive setups when playing against other big teams. Games against defensive-minded minnows like Burnley are feared more than those against attack-minded sides like Bournemouth. Most people who watch football intuitively feel like a team has got to defend when playing against a better team.</p>
 <p>Most, but not all.</p>
@@ -140,7 +141,7 @@ Werder Bremen is ill advised to focus on defense. In relegation race you need to
     quality = norm_attack + norm_defense,
     balance = norm_attack - norm_defense
   )</code></pre>
-<p>We now have two metrics, <code>quality</code> and <code>balance</code>, that capture how good and how attacking a team is, respectively. Incidentally, <code>quality</code> is exactly the log of the goal ratio, a metric that is familiar to football fans. <code>balance</code> is it’s lesser-kown sibling, that we can christen as <em>goal product</em> as it should map directly onto the product of the goals scored and the goals conceded.</p>
+<p>We now have two metrics, <code>quality</code> and <code>balance</code>, that capture how good and how attacking a team is, respectively. Incidentally, <code>quality</code> is exactly the log of the goal ratio, a metric that is familiar to football fans. <code>balance</code> is its lesser-kown sibling, that we can christen as <em>goal product</em> as it should map directly onto the product of the goals scored and the goals conceded.</p>
 <p>These are the most attacking teams in the past 15 seasons:</p>
 <pre><code>## # A tibble: 300 x 6
 ##                    team  season points goals_for goals_against   balance
@@ -220,7 +221,7 @@ summary(fit)</code></pre>
     midpoint = 0
   ) +
   theme_classic()</code></pre>
-<p><img src="/post/goal_product_ratio_files/figure-html/model_plot-1.png" width="672" /></p>
+<p><img src="/post/2017-09-28-goal_product_ratio_files/figure-html/model_plot-1.png" width="672" /></p>
 <p>As we can see, the red line, fit on the attacking teams, has a greater slope than the blue line. The red dots are higher than the blue dots at high quality, but lower at low quality.</p>
 <p><strong>For good teams, it is better to be offensive, and for bad teams, it is better to be defensive</strong></p>
 <div id="bundesliga" class="section level3">
@@ -245,7 +246,7 @@ summary(fit)</code></pre>
 ## Residual standard error: 4.005 on 267 degrees of freedom
 ## Multiple R-squared:  0.9161, Adjusted R-squared:  0.9155 
 ## F-statistic:  1457 on 2 and 267 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p><img src="/post/goal_product_ratio_files/figure-html/bundesliga_plot-1.png" width="672" /></p>
+<p><img src="/post/2017-09-28-goal_product_ratio_files/figure-html/bundesliga_plot-1.png" width="672" /></p>
 </div>
 <div id="la-liga" class="section level3">
 <h3>La Liga</h3>
@@ -269,7 +270,7 @@ summary(fit)</code></pre>
 ## Residual standard error: 4.211 on 297 degrees of freedom
 ## Multiple R-squared:  0.9321, Adjusted R-squared:  0.9316 
 ## F-statistic:  2038 on 2 and 297 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p><img src="/post/goal_product_ratio_files/figure-html/la_liga_plot-1.png" width="672" /></p>
+<p><img src="/post/2017-09-28-goal_product_ratio_files/figure-html/la_liga_plot-1.png" width="672" /></p>
 <p>Here the two fits don’t completely separate at the lower end of the scale. Simpson’s paradox and all that. Remember that what we trust the linear fit above better. Fitting one model for attacking teams and another for defensive teams is a very clumsy way to answer the question, but I thought it would at least be easy for people to understand.</p>
 <p>The model coefficients are nearly identical to the Premier League ones. I truly, honestly hope there are no “It’s different for La Liga” takes, funny though it would be.</p>
 </div>
@@ -295,7 +296,7 @@ summary(fit)</code></pre>
 ## Residual standard error: 4.211 on 297 degrees of freedom
 ## Multiple R-squared:  0.9321, Adjusted R-squared:  0.9316 
 ## F-statistic:  2038 on 2 and 297 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p><img src="/post/goal_product_ratio_files/figure-html/all_plot-1.png" width="672" /></p>
+<p><img src="/post/2017-09-28-goal_product_ratio_files/figure-html/all_plot-1.png" width="672" /></p>
 </div>
 <div id="conclusion" class="section level3">
 <h3>Conclusion</h3>
@@ -335,6 +336,14 @@ summary(fit)</code></pre>
 
     
     
+    
+        <li>
+            <a href="/2017/10/19/shot_variability/">Many bad shots or one good shot?<aside class="dates">Oct 19 2017</aside></a>
+        </li>
+    
+        <li>
+            <a href="/2017/10/14/intro_football_modeling/">An introduction to football modeling<aside class="dates">Oct 14 2017</aside></a>
+        </li>
     
 </ul>
 
